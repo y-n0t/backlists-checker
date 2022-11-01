@@ -1,7 +1,7 @@
 __title__ = "Blacklists Checker"
 __filename__ = "blcheck.py"
 __description__ = "Verify if a domain name or an IP is on a blacklist."
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __status__ = "Production"
 __python_version__ = "3"
 __author__ = "y-n0t"
@@ -13,7 +13,7 @@ import sys
 try:
     import dns.resolver
 except ModuleNotFoundError:
-    raise SystemExit("The module dns was not found!\nOn linux, you can install it with: apt-get install python3-dnspython")
+    raise SystemExit("The module dns was not found!\nOn linux, you can install it with: apt-get install python3-dnspython. With PIP: python3 -m pip install dnspython")
 
 
 # DNSBL list
@@ -123,7 +123,7 @@ def validate_hostname(p_host):
 
 
 def reverse_ip(p_ip):
-    """Reverse the IP a the addr format.
+    """Reverse the IP to the addr format.
 
     Args:
         p_ip (str): An IP address.
@@ -165,7 +165,7 @@ def rbl_dns_query(p_host):
 
 
 def check_spam_list(p_ip):
-    """Loop on the DNSBL list (blacklist) declared aboce and print the output on STDOUT.
+    """Loop on the DNSBL list (blacklist) declared above and print the output on STDOUT.
 
     Args:
         p_ip (str): An IP address.
@@ -227,7 +227,7 @@ if __name__ == '__main__':
     # Define the argument as arg1
     arg1: str = sys.argv[1]
 
-    if arg1 == "--version":
+    if arg1 == "--version" or arg1 == "-v":
         version()
         exit(0)
 

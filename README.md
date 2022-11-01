@@ -32,8 +32,8 @@ used to send spam, Internet service providers (ISPs) who willingly host spammers
 ## How to use it?
 
 Here some examples :  
-* python blcheck.py mail.example.com
-* python blcheck.py 8.8.8.8
+* python3 blcheck.py mail.example.com
+* python3 blcheck.py 8.8.8.8
 
 ## Settings
 
