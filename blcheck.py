@@ -1,19 +1,24 @@
+"""Module providing regex function and printing."""
+import re
+import sys
+
 __title__ = "Blacklists Checker"
 __filename__ = "blcheck.py"
-__description__ = "Verify if a domain name or an IP is on a blacklist."
+__description__ = "It verify if a domain name or an IP is on a blacklist."
 __version__ = "1.0.2"
 __status__ = "Production"
 __python_version__ = "3"
 __author__ = "y-n0t"
 __license__ = "GPL"
 
-import re
-import sys
 
 try:
     import dns.resolver
-except ModuleNotFoundError:
-    raise SystemExit("The module dns was not found!\nOn linux, you can install it with: apt-get install python3-dnspython. With PIP: python3 -m pip install dnspython")
+except ModuleNotFoundError as e:
+    MSG="""The module dns was not found!
+    On linux, you can install it with: apt-get install python3-dnspython.
+    With PIP: python3 -m pip install dnspython"""
+    raise SystemExit(MSG) from e
 
 
 # DNSBL list
@@ -68,22 +73,29 @@ dnsblList = (
 def version():
     """Show some information about the soft
     """
-    print("\n{}    v{}\n".format(__title__, __version__))
-    print("{}".format(__description__))
-    print('Number of DNSBL in the list: %s' % len(dnsblList))
-    print("Author: {}".format(__author__))
-    print("License: {}".format(__license__))
-    print("Release: {}".format(__status__))
+    version_message=f"""\n{__title__}    v{__version__}
+
+{__description__}
+Number of DNSBL in the list: {len(dnsblList)}
+Author: {__author__}
+License: {__license__}
+Release: {__status__}\n"""
+
+    print(version_message)
 
 
 def helpme():
     """Show some examples
     """
-    print("\n{}    v{}\n".format(__title__, __version__))
-    print("{}".format(__description__))
-    print('Number of DNSBL in the list: %s' % len(dnsblList))
-    print("\nExample: python blcheck.py mail.example.com")
-    print("         python blcheck.py 8.8.8.8")
+    help_msg=f"""\n{__title__}    v{__version__}
+
+{__description__}
+Number of DNSBL in the list: {len(dnsblList)}
+
+Example: python blcheck.py mail.example.com
+         python blcheck.py 8.8.8.8\n"""
+
+    print(help_msg)
 
 
 def validate_ip(p_ip):
@@ -96,12 +108,9 @@ def validate_ip(p_ip):
         bool: True if the IP is valid.
     """
     # Regular expression for validating an IP address
-    valid_ip_address_regex = '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$'
+    valid_ip_address_regex = r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$'
 
-    if re.search(valid_ip_address_regex, p_ip):
-        return True
-    else:
-        return False
+    return bool(re.search(valid_ip_address_regex, p_ip))
 
 
 def validate_hostname(p_host):
@@ -114,12 +123,9 @@ def validate_hostname(p_host):
         bool: True if it is valid.
     """
     # Regular expression for validating a hostname
-    valid_hostname_regex = '^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z])$'
+    valid_hostname_regex = r'^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z])$'
 
-    if re.search(valid_hostname_regex, p_host):
-        return True
-    else:
-        return False
+    return bool(re.search(valid_hostname_regex, p_host))
 
 
 def reverse_ip(p_ip):
@@ -172,21 +178,22 @@ def check_spam_list(p_ip):
     """
     total_found = 0
     i = 1
-    print("IP to analyse: {}\n".format(p_ip))
+    print(f"IP to analyse: {p_ip}\n")
     host_to_check = reverse_ip(p_ip)
-    for bl in dnsblList:
-        print("{0} : {1} : ".format(i, bl), end='')
+    for dnsbl in dnsblList:
+        print(f"{i} : {dnsbl} : ", end='')
         try:
-            if rbl_dns_query(host_to_check + "." + bl):
+            if rbl_dns_query(host_to_check + "." + dnsbl):
                 print("BAD! This IP is listed here.")
                 total_found += 1
         except Exception:
             pass
         i += 1
 
-    print("\nTotal found = {}/{}\n".format(total_found, len(dnsblList)))
+    print(f"\nTotal found = {total_found}/{len(dnsblList)}\n")
+
     if total_found > 0:
-        raise SystemExit("This is BAD, this IP was found {} times.".format(total_found))
+        raise SystemExit(f"This is BAD, this IP was found {total_found} times.")
     else:
         print("This is GOOD, this IP was not found at all.\n")
 
@@ -205,18 +212,18 @@ def get_ip(p_host):
         for result in query_result:
             return str(result)
 
-    except dns.resolver.Timeout:
-        raise SystemExit("Timeout No answers could be found in the specified lifetime.")
-    except dns.resolver.NXDOMAIN:
-        raise SystemExit("NXDOMAIN The query name does not exist.")
-    except dns.resolver.YXDOMAIN:
-        raise SystemExit("YXDOMAIN The query name is too long after DNAME substitution.")
-    except dns.resolver.NoAnswer:
-        raise SystemExit("NoAnswer The response did not contain an answer and raise_on_no_answer is True.")
-    except dns.resolver.NoNameservers:
-        raise SystemExit("NoNameservers No non-broken nameservers are available to answer the question.")
-    except Exception as error:
-        raise SystemExit(error)
+    except dns.resolver.Timeout as timeout:
+        raise SystemExit("Timeout No answers could be found in the specified lifetime.") from timeout
+    except dns.resolver.NXDOMAIN as nxdomain:
+        raise SystemExit("NXDOMAIN The query name does not exist.") from nxdomain
+    except dns.resolver.YXDOMAIN as yxdomain:
+        raise SystemExit("YXDOMAIN The query name is too long after DNAME substitution.") from yxdomain
+    except dns.resolver.NoAnswer as noanswer:
+        raise SystemExit("NoAnswer The response did not contain an answer and raise_on_no_answer is True.") from noanswer
+    except dns.resolver.NoNameservers as nonameservers:
+        raise SystemExit("NoNameservers No non-broken nameservers are available to answer the question.") from nonameservers
+    except Exception as else_error:
+        raise SystemExit(else_error) from else_error
 
 
 if __name__ == '__main__':
@@ -227,17 +234,17 @@ if __name__ == '__main__':
     # Define the argument as arg1
     arg1: str = sys.argv[1]
 
-    if arg1 == "--version" or arg1 == "-v":
+    if arg1 in ('--version', '-v'):
         version()
-        exit(0)
+        sys.exit(0)
 
-    if arg1 == "--help" or arg1 == "-h":
+    if arg1 in ('--help', '-h'):
         helpme()
-        exit(0)
+        sys.exit(0)
 
     # Show things at the console
-    print("\n{}    v{}\n".format(__title__, __version__))
-    print('Number of DNSBL in the list: %s\n\n' % len(dnsblList))
+    print(f"\n{__title__}    v{__version__}\n")
+    print(f'Number of DNSBL in the list: {len(dnsblList)}\n\n')
 
     # Settings for the dns.resolver module
     myResolver = dns.resolver.Resolver()
@@ -254,18 +261,18 @@ if __name__ == '__main__':
 
     try:
         # Check if the IP is valid, if applicable.
-        isValidIP = validate_ip(arg1)
+        IS_VALID_IP = validate_ip(arg1)
 
         # If it is an IP, do you stuff and quit...
-        if isValidIP:
+        if IS_VALID_IP:
             check_spam_list(arg1)
-            exit(0)
+            sys.exit(0)
 
         # Check if the provided name is a valid hostname.
-        isValidHostname = validate_hostname(arg1)
+        IS_VALID_HOSTNAME = validate_hostname(arg1)
 
         # If the hostname is valid and it was not an IP, do you stuff...
-        if isValidHostname and not isValidIP:
+        if IS_VALID_HOSTNAME and not IS_VALID_IP:
             print("Getting the IP for:", arg1)
             # DNS query to get the IP of the provided hostname.
             ip: str = get_ip(arg1)
@@ -273,12 +280,12 @@ if __name__ == '__main__':
             # If an IP was found.
             if ip:
                 check_spam_list(ip)
-                exit(0)
+                sys.exit(0)
             else:
-                raise SystemExit("Error: an IP has not been found for: %s" % arg1)
+                raise SystemExit(f"Error: an IP has not been found for: {arg1}")
 
-        if not isValidHostname and not isValidIP:
-            raise SystemExit("Error: This argument is not a valid IP or hostname: %s" % arg1)
+        if not IS_VALID_HOSTNAME and not IS_VALID_IP:
+            raise SystemExit(f"Error: This argument is not a valid IP or hostname: {arg1}")
 
     except Exception as e:
         print(e)
