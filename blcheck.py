@@ -5,7 +5,7 @@ import sys
 __title__ = "Blacklists Checker"
 __filename__ = "blcheck.py"
 __description__ = "It verify if a domain name or an IP is on a blacklist."
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 __status__ = "Production"
 __python_version__ = "3"
 __author__ = "y-n0t"
