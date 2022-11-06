@@ -150,10 +150,11 @@ def rbl_dns_query(p_host):
     Returns:
         bool: True if the IP is found a the blacklist.
     """
-    is_listed = False
     try:
-        myResolver.query(p_host, 'A')
-        is_listed = True
+        if myResolver.query(p_host, 'A'):
+            return True
+        return False
+
     except dns.resolver.Timeout:
         print("Timeout No answers could be found in the specified lifetime.")
     except dns.resolver.NXDOMAIN:
@@ -166,8 +167,6 @@ def rbl_dns_query(p_host):
         print("NoNameservers No non-broken nameservers are available to answer the question.")
     except Exception as error:
         print(error)
-    finally:
-        return is_listed
 
 
 def check_spam_list(p_ip):
@@ -193,9 +192,9 @@ def check_spam_list(p_ip):
     print(f"\nTotal found = {total_found}/{len(dnsblList)}\n")
 
     if total_found > 0:
-        raise SystemExit(f"This is BAD, this IP was found {total_found} times.")
-    else:
-        print("This is GOOD, this IP was not found at all.\n")
+        raise SystemExit(f"This is BAD, this IP was found {total_found} times.\n")
+
+    print("This is GOOD, this IP was not found at all.\n")
 
 
 def get_ip(p_host):
@@ -242,20 +241,24 @@ if __name__ == '__main__':
         helpme()
         sys.exit(0)
 
-    # Show things at the console
+    # Show stuff at the console
     print(f"\n{__title__}    v{__version__}\n")
     print(f'Number of DNSBL in the list: {len(dnsblList)}\n\n')
 
     # Settings for the dns.resolver module
     myResolver = dns.resolver.Resolver()
+
     # If True (the default), the resolver instance is configured in the normal fashion for the operating system the
     # resolver is running on. (I.e. a /etc/resolv.conf file on POSIX systems and from the registry on Windows systems.)
     # So here, we turned this off.
     myResolver.default_resolver = dns.resolver.Resolver(configure=False)
+
     # Define your DNS resolvers here, or use Google's.
     myResolver.default_resolver.nameservers = ['8.8.8.8', '8.8.4.4']
+
     # The number of seconds to wait for a response from a server, before timing out.
     myResolver.timeout = 3
+
     # The total number of seconds to spend trying to get an answer to the question.
     myResolver.lifetime = 3
 
@@ -274,6 +277,7 @@ if __name__ == '__main__':
         # If the hostname is valid and it was not an IP, do you stuff...
         if IS_VALID_HOSTNAME and not IS_VALID_IP:
             print("Getting the IP for:", arg1)
+
             # DNS query to get the IP of the provided hostname.
             ip: str = get_ip(arg1)
 
