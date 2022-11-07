@@ -5,7 +5,7 @@ import sys
 __title__ = "Blacklists Checker"
 __filename__ = "blcheck.py"
 __description__ = "It verify if a domain name or an IP is on a blacklist."
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 __status__ = "Production"
 __python_version__ = "3"
 __author__ = "y-n0t"
@@ -70,7 +70,7 @@ dnsblList = (
 )
 
 
-def version():
+def version() -> None:
     """Show some information about the soft"""
     version_message = f"""\n{__title__}    v{__version__}
 
@@ -83,7 +83,7 @@ Release: {__status__}\n"""
     print(version_message)
 
 
-def helpme():
+def helpme() -> None:
     """Show some examples"""
     help_msg = f"""\n{__title__}    v{__version__}
 
@@ -96,7 +96,7 @@ Example: python blcheck.py mail.example.com
     print(help_msg)
 
 
-def validate_ip(p_ip):
+def validate_ip(p_ip: str) -> bool:
     """Verify that the IP address is a valid format.
 
     Args:
@@ -111,7 +111,7 @@ def validate_ip(p_ip):
     return bool(re.search(valid_ip_address_regex, p_ip))
 
 
-def validate_hostname(p_host):
+def validate_hostname(p_host: str) -> bool:
     """Verify that the hostname is a valid format.
 
     Args:
@@ -126,7 +126,7 @@ def validate_hostname(p_host):
     return bool(re.search(valid_hostname_regex, p_host))
 
 
-def reverse_ip(p_ip):
+def reverse_ip(p_ip: str) -> str:
     """Reverse the IP to the addr format.
 
     Args:
@@ -139,7 +139,7 @@ def reverse_ip(p_ip):
     return temp_list[3] + "." + temp_list[2] + "." + temp_list[1] + "." + temp_list[0]
 
 
-def rbl_dns_query(p_host):
+def rbl_dns_query(p_host: str) -> bool:
     """Check if the provided IP is on an DNSBL list (blacklist) and print the output on STDOUT.
 
     Args:
@@ -171,7 +171,7 @@ def rbl_dns_query(p_host):
         print(error)
 
 
-def check_spam_list(p_ip):
+def check_spam_list(p_ip: str) -> None:
     """Loop on the DNSBL list (blacklist) declared above and print the output on STDOUT.
 
     Args:
@@ -194,12 +194,13 @@ def check_spam_list(p_ip):
     print(f"\nTotal found = {total_found}/{len(dnsblList)}\n")
 
     if total_found > 0:
-        raise SystemExit(f"This is BAD, this IP was found {total_found} times.\n")
+        raise SystemExit(
+            f"This is BAD, this IP was found {total_found} times.\n")
 
     print("This is GOOD, this IP was not found at all.\n")
 
 
-def get_ip(p_host):
+def get_ip(p_host: str) -> str:
     """Return IP address of host.
 
     Args:
@@ -218,7 +219,8 @@ def get_ip(p_host):
             "Timeout No answers could be found in the specified lifetime."
         ) from timeout
     except dns.resolver.NXDOMAIN as nxdomain:
-        raise SystemExit("NXDOMAIN The query name does not exist.") from nxdomain
+        raise SystemExit(
+            "NXDOMAIN The query name does not exist.") from nxdomain
     except dns.resolver.YXDOMAIN as yxdomain:
         raise SystemExit(
             "YXDOMAIN The query name is too long after DNAME substitution."
@@ -238,7 +240,8 @@ def get_ip(p_host):
 if __name__ == "__main__":
     # First thing first, check if an argument exist, if not exit.
     if len(sys.argv) == 1:
-        raise SystemExit("Error: no argument: it requires an IP or a hostname.")
+        raise SystemExit(
+            "Error: no argument: it requires an IP or a hostname.")
 
     # Define the argument as arg1
     arg1: str = sys.argv[1]
@@ -296,7 +299,8 @@ if __name__ == "__main__":
                 check_spam_list(ip)
                 sys.exit(0)
             else:
-                raise SystemExit(f"Error: an IP has not been found for: {arg1}")
+                raise SystemExit(
+                    f"Error: an IP has not been found for: {arg1}")
 
         if not IS_VALID_HOSTNAME and not IS_VALID_IP:
             raise SystemExit(
