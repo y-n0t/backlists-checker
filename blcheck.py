@@ -15,7 +15,7 @@ __license__ = "GPL"
 try:
     import dns.resolver
 except ModuleNotFoundError as e:
-    MSG="""The module dns was not found!
+    MSG = """The module dns was not found!
     On linux, you can install it with: apt-get install python3-dnspython.
     With PIP: python3 -m pip install dnspython"""
     raise SystemExit(MSG) from e
@@ -66,14 +66,13 @@ dnsblList = (
     "xbl.spamhaus.org",
     "z.mailspike.net",
     "zen.spamhaus.org",
-    "zombie.dnsbl.sorbs.net"
+    "zombie.dnsbl.sorbs.net",
 )
 
 
 def version():
-    """Show some information about the soft
-    """
-    version_message=f"""\n{__title__}    v{__version__}
+    """Show some information about the soft"""
+    version_message = f"""\n{__title__}    v{__version__}
 
 {__description__}
 Number of DNSBL in the list: {len(dnsblList)}
@@ -85,9 +84,8 @@ Release: {__status__}\n"""
 
 
 def helpme():
-    """Show some examples
-    """
-    help_msg=f"""\n{__title__}    v{__version__}
+    """Show some examples"""
+    help_msg = f"""\n{__title__}    v{__version__}
 
 {__description__}
 Number of DNSBL in the list: {len(dnsblList)}
@@ -108,7 +106,7 @@ def validate_ip(p_ip):
         bool: True if the IP is valid.
     """
     # Regular expression for validating an IP address
-    valid_ip_address_regex = r'^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$'
+    valid_ip_address_regex = r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 
     return bool(re.search(valid_ip_address_regex, p_ip))
 
@@ -123,7 +121,7 @@ def validate_hostname(p_host):
         bool: True if it is valid.
     """
     # Regular expression for validating a hostname
-    valid_hostname_regex = r'^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z])$'
+    valid_hostname_regex = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z])$"
 
     return bool(re.search(valid_hostname_regex, p_host))
 
@@ -137,7 +135,7 @@ def reverse_ip(p_ip):
     Returns:
         str: The IP in reversed.
     """
-    temp_list = p_ip.split('.')
+    temp_list = p_ip.split(".")
     return temp_list[3] + "." + temp_list[2] + "." + temp_list[1] + "." + temp_list[0]
 
 
@@ -151,7 +149,7 @@ def rbl_dns_query(p_host):
         bool: True if the IP is found a the blacklist.
     """
     try:
-        if myResolver.query(p_host, 'A'):
+        if myResolver.query(p_host, "A"):
             return True
         return False
 
@@ -162,9 +160,13 @@ def rbl_dns_query(p_host):
     except dns.resolver.YXDOMAIN:
         print("YXDOMAIN The query name is too long after DNAME substitution.")
     except dns.resolver.NoAnswer:
-        print("NoAnswer The response did not contain an answer and raise_on_no_answer is True.")
+        print(
+            "NoAnswer The response did not contain an answer and raise_on_no_answer is True."
+        )
     except dns.resolver.NoNameservers:
-        print("NoNameservers No non-broken nameservers are available to answer the question.")
+        print(
+            "NoNameservers No non-broken nameservers are available to answer the question."
+        )
     except Exception as error:
         print(error)
 
@@ -180,7 +182,7 @@ def check_spam_list(p_ip):
     print(f"IP to analyse: {p_ip}\n")
     host_to_check = reverse_ip(p_ip)
     for dnsbl in dnsblList:
-        print(f"{i} : {dnsbl} : ", end='')
+        print(f"{i} : {dnsbl} : ", end="")
         try:
             if rbl_dns_query(host_to_check + "." + dnsbl):
                 print("BAD! This IP is listed here.")
@@ -207,43 +209,51 @@ def get_ip(p_host):
         str: host IP, if found.
     """
     try:
-        query_result = myResolver.query(p_host, 'A')
+        query_result = myResolver.query(p_host, "A")
         for result in query_result:
             return str(result)
 
     except dns.resolver.Timeout as timeout:
-        raise SystemExit("Timeout No answers could be found in the specified lifetime.") from timeout
+        raise SystemExit(
+            "Timeout No answers could be found in the specified lifetime."
+        ) from timeout
     except dns.resolver.NXDOMAIN as nxdomain:
         raise SystemExit("NXDOMAIN The query name does not exist.") from nxdomain
     except dns.resolver.YXDOMAIN as yxdomain:
-        raise SystemExit("YXDOMAIN The query name is too long after DNAME substitution.") from yxdomain
+        raise SystemExit(
+            "YXDOMAIN The query name is too long after DNAME substitution."
+        ) from yxdomain
     except dns.resolver.NoAnswer as noanswer:
-        raise SystemExit("NoAnswer The response did not contain an answer and raise_on_no_answer is True.") from noanswer
+        raise SystemExit(
+            "NoAnswer The response did not contain an answer and raise_on_no_answer is True."
+        ) from noanswer
     except dns.resolver.NoNameservers as nonameservers:
-        raise SystemExit("NoNameservers No non-broken nameservers are available to answer the question.") from nonameservers
+        raise SystemExit(
+            "NoNameservers No non-broken nameservers are available to answer the question."
+        ) from nonameservers
     except Exception as else_error:
         raise SystemExit(else_error) from else_error
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # First thing first, check if an argument exist, if not exit.
     if len(sys.argv) == 1:
-        raise SystemExit('Error: no argument: it requires an IP or a hostname.')
+        raise SystemExit("Error: no argument: it requires an IP or a hostname.")
 
     # Define the argument as arg1
     arg1: str = sys.argv[1]
 
-    if arg1 in ('--version', '-v'):
+    if arg1 in ("--version", "-v"):
         version()
         sys.exit(0)
 
-    if arg1 in ('--help', '-h'):
+    if arg1 in ("--help", "-h"):
         helpme()
         sys.exit(0)
 
     # Show stuff at the console
     print(f"\n{__title__}    v{__version__}\n")
-    print(f'Number of DNSBL in the list: {len(dnsblList)}\n\n')
+    print(f"Number of DNSBL in the list: {len(dnsblList)}\n\n")
 
     # Settings for the dns.resolver module
     myResolver = dns.resolver.Resolver()
@@ -254,7 +264,7 @@ if __name__ == '__main__':
     myResolver.default_resolver = dns.resolver.Resolver(configure=False)
 
     # Define your DNS resolvers here, or use Google's.
-    myResolver.default_resolver.nameservers = ['8.8.8.8', '8.8.4.4']
+    myResolver.default_resolver.nameservers = ["8.8.8.8", "8.8.4.4"]
 
     # The number of seconds to wait for a response from a server, before timing out.
     myResolver.timeout = 3
@@ -289,7 +299,9 @@ if __name__ == '__main__':
                 raise SystemExit(f"Error: an IP has not been found for: {arg1}")
 
         if not IS_VALID_HOSTNAME and not IS_VALID_IP:
-            raise SystemExit(f"Error: This argument is not a valid IP or hostname: {arg1}")
+            raise SystemExit(
+                f"Error: This argument is not a valid IP or hostname: {arg1}"
+            )
 
     except Exception as e:
         print(e)
