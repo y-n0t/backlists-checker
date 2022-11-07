@@ -3,7 +3,7 @@
 
 Description: Verify if an IP is on a blacklist (DNSBL)  
 File name: blcheck.py  
-Version: 1.0.1  
+Version: 1.0.3  
 Status: Production  
 Python version: 3  
 Requirements: python3-dnspython  
