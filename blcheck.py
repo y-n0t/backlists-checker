@@ -149,7 +149,7 @@ def rbl_dns_query(p_host: str) -> bool:
         bool: True if the IP is found a the blacklist.
     """
     try:
-        if myResolver.query(p_host, "A"):
+        if myResolver.resolve(p_host, "A"):
             return True
         return False
 
@@ -210,7 +210,7 @@ def get_ip(p_host: str) -> str:
         str: host IP, if found.
     """
     try:
-        query_result = myResolver.query(p_host, "A")
+        query_result = myResolver.resolve(p_host, "A")
         for result in query_result:
             return str(result)
 
