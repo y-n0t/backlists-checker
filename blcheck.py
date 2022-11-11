@@ -1,6 +1,16 @@
 """Module providing regex function and printing."""
 import re
 import sys
+import argparse
+
+try:
+    import dns.resolver
+except ModuleNotFoundError as e:
+    MSG = """The module dns was not found!
+    On linux: you can install it with: apt-get install python3-dnspython.
+    With PIP: python3 -m pip install dnspython"""
+    raise SystemExit(MSG) from e
+
 
 __title__ = "Blacklists Checker"
 __filename__ = "blcheck.py"
@@ -10,15 +20,6 @@ __status__ = "Production"
 __python_version__ = "3"
 __author__ = "y-n0t"
 __license__ = "GPL"
-
-
-try:
-    import dns.resolver
-except ModuleNotFoundError as e:
-    MSG = """The module dns was not found!
-    On linux, you can install it with: apt-get install python3-dnspython.
-    With PIP: python3 -m pip install dnspython"""
-    raise SystemExit(MSG) from e
 
 
 # DNSBL list
@@ -68,32 +69,6 @@ dnsblList = (
     "zen.spamhaus.org",
     "zombie.dnsbl.sorbs.net",
 )
-
-
-def version() -> None:
-    """Show some information about the soft"""
-    version_message = f"""\n{__title__}    v{__version__}
-
-{__description__}
-Number of DNSBL in the list: {len(dnsblList)}
-Author: {__author__}
-License: {__license__}
-Release: {__status__}\n"""
-
-    print(version_message)
-
-
-def helpme() -> None:
-    """Show some examples"""
-    help_msg = f"""\n{__title__}    v{__version__}
-
-{__description__}
-Number of DNSBL in the list: {len(dnsblList)}
-
-Example: python blcheck.py mail.example.com
-         python blcheck.py 8.8.8.8\n"""
-
-    print(help_msg)
 
 
 def validate_ip(p_ip: str) -> bool:
@@ -237,26 +212,72 @@ def get_ip(p_host: str) -> str:
         raise SystemExit(else_error) from else_error
 
 
-if __name__ == "__main__":
-    # First thing first, check if an argument exist, if not exit.
-    if len(sys.argv) == 1:
-        raise SystemExit(
-            "Error: no argument: it requires an IP or a hostname.")
-
-    # Define the argument as arg1
-    arg1: str = sys.argv[1]
-
-    if arg1 in ("--version", "-v"):
-        version()
-        sys.exit(0)
-
-    if arg1 in ("--help", "-h"):
-        helpme()
-        sys.exit(0)
-
+def main():
+    """Main function"""
     # Show stuff at the console
     print(f"\n{__title__}    v{__version__}\n")
     print(f"Number of DNSBL in the list: {len(dnsblList)}\n\n")
+
+    try:
+        # Check if the IP is valid, if applicable.
+        is_ip_valid = validate_ip(args.host)
+
+        # If it is an IP, do you stuff and quit...
+        if is_ip_valid:
+            check_spam_list(args.host)
+            sys.exit(0)
+
+        # Check if the provided name is a valid hostname.
+        is_hostname_valid = validate_hostname(args.host)
+
+        # If the hostname is valid and it was not an IP, do you stuff...
+        if is_hostname_valid and not is_ip_valid:
+            print("Getting the IP for:", args.host)
+
+            # DNS query to get the IP of the provided hostname.
+            ip: str = get_ip(args.host)
+
+            # If an IP was found.
+            if ip:
+                check_spam_list(ip)
+                sys.exit(0)
+            else:
+                raise SystemExit(
+                    f"Error: an IP has not been found for: {args.host}")
+
+        if not is_hostname_valid and not is_ip_valid:
+            raise SystemExit(
+                f"Error: This argument is not a valid IP or hostname: {args.host}"
+            )
+
+    except Exception as e:
+        print(e)
+
+
+if __name__ == "__main__":
+
+    argParser = argparse.ArgumentParser(
+        description="It verify if a domain name or an IP is on a blacklist."
+    )
+
+    argParser.version = __version__
+    argParser.add_argument(
+        "-v",
+        "--version",
+        action='version'
+    )
+
+    argParser.add_argument(
+        "-s",
+        "--search",
+        metavar='IP or HOSTNAME',
+        type=str,
+        help="""it requires an IP or a hostname, example: python3 blcheck.py -s mail.example.com""",
+        dest="host",
+        required=True
+    )
+
+    args = argParser.parse_args()
 
     # Settings for the dns.resolver module
     myResolver = dns.resolver.Resolver()
@@ -275,37 +296,4 @@ if __name__ == "__main__":
     # The total number of seconds to spend trying to get an answer to the question.
     myResolver.lifetime = 3
 
-    try:
-        # Check if the IP is valid, if applicable.
-        IS_VALID_IP = validate_ip(arg1)
-
-        # If it is an IP, do you stuff and quit...
-        if IS_VALID_IP:
-            check_spam_list(arg1)
-            sys.exit(0)
-
-        # Check if the provided name is a valid hostname.
-        IS_VALID_HOSTNAME = validate_hostname(arg1)
-
-        # If the hostname is valid and it was not an IP, do you stuff...
-        if IS_VALID_HOSTNAME and not IS_VALID_IP:
-            print("Getting the IP for:", arg1)
-
-            # DNS query to get the IP of the provided hostname.
-            ip: str = get_ip(arg1)
-
-            # If an IP was found.
-            if ip:
-                check_spam_list(ip)
-                sys.exit(0)
-            else:
-                raise SystemExit(
-                    f"Error: an IP has not been found for: {arg1}")
-
-        if not IS_VALID_HOSTNAME and not IS_VALID_IP:
-            raise SystemExit(
-                f"Error: This argument is not a valid IP or hostname: {arg1}"
-            )
-
-    except Exception as e:
-        print(e)
+    main()
